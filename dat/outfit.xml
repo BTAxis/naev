@@ -1316,7 +1316,7 @@
    </general>
   <specific type="turret beam" secondary="1">
    <cpu>3</cpu>
-   <delay>500</delay>
+   <delay>0.5</delay>
    <duration>0.5</duration>
    <range>180</range>
    <turn>360</turn>
@@ -1326,7 +1326,7 @@
     <type>normal</type>
     <penetrate>0</penetrate>
     <physical>1</physical>
-    <disable>2</disable>
+    <disable>2.5</disable>
    </damage>
    <spfx_shield>ShiS</spfx_shield>
    <spfx_armour>ExpS</spfx_armour>
