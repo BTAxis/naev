@@ -1305,6 +1305,35 @@
 
 
  <!-- BEAM TREE -->
+ <outfit name="Electroleash">
+  <general>
+   <slot>weapon</slot>
+   <size>light</size>
+   <mass>4</mass>
+   <price>7500</price>
+   <description>The Electroleash is little more than an electric discharger enhanced with some clever tricks. It emits a stream of electric energy that arcs towards a target and builds up a charge in it. Though the stream does little to no structural damage, it can disrupt internal systems over time and force them to shut down.</description>
+   <gfx_store>laser</gfx_store>
+   </general>
+  <specific type="turret beam" secondary="1">
+   <cpu>3</cpu>
+   <delay>500</delay>
+   <duration>0.5</duration>
+   <range>180</range>
+   <turn>360</turn>
+   <energy>5</energy>
+   <heatup>90</heatup>
+   <damage>
+    <type>normal</type>
+    <penetrate>0</penetrate>
+    <physical>1</physical>
+    <disable>2</disable>
+   </damage>
+   <spfx_shield>ShiS</spfx_shield>
+   <spfx_armour>ExpS</spfx_armour>
+   <gfx>beam_lightning</gfx>
+   <sound>plasma</sound>
+  </specific>
+ </outfit>
  <!-- TODO micro-beam -->
  <!-- TODO heavy micro-beam -->
  <outfit name="Orion Beam">
