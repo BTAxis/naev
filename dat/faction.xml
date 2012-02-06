@@ -315,4 +315,10 @@
    <enemy>Achack_sirius</enemy>
   </enemies>
  </faction>
+ <faction name="Naev Contributors">
+  <invisible />
+  <static />
+  <allies />
+  <player>100</player>
+ </faction>
 </Factions>
