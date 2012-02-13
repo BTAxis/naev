@@ -338,7 +338,7 @@ static int systemL_name( lua_State *L )
 /**
  * @brief Gets system faction.
  *
- *    @luaparam s System to get the factions of.
+ *    @luaparam s System to get the faction of.
  *    @luareturn The dominant faction in the system.
  * @luafunc faction( s )
  */
@@ -582,21 +582,24 @@ static int systemL_planets( lua_State *L )
 static int systemL_presence( lua_State *L )
 {
    StarSystem *sys;
-   LuaFaction *lf;
    int *fct;
    int nfct;
    double presence;
-   int i;
+   int i, f, used;
    const char *cmd;
 
    /* Get parameters. */
    sys = luaL_validsystem(L, 1);
+
+   /* Allow fall-through. */
+   used = 0;
 
    /* Get the second parameter. */
    if (lua_isstring(L, 2)) {
       /* A string command has been given. */
       cmd  = lua_tostring(L, 2);
       nfct = 0;
+      used = 1;
 
       /* Check the command string and get the appropriate faction group.*/
       if(strcmp(cmd, "all") == 0)
@@ -608,16 +611,16 @@ static int systemL_presence( lua_State *L )
       else if(strcmp(cmd, "neutral") == 0)
          fct = faction_getGroup(&nfct, 2);
       else /* Invalid command string. */
-         NLUA_INVALID_PARAMETER(L);
+         used = 0;
    }
-   else if (lua_isfaction(L, 2)) {
+
+   if (!used) {
       /* A faction id was given. */
-      lf     = lua_tofaction(L, 2);
+      f      = luaL_validfaction(L, 2);
       nfct   = 1;
       fct    = malloc(sizeof(int));
-      fct[0] = lf->f;
+      fct[0] = f;
    }
-   else NLUA_INVALID_PARAMETER(L);
 
    /* Add up the presence values. */
    presence = 0;

@@ -726,7 +726,6 @@ const char* outfit_getType( const Outfit* o )
          "Launcher",
          "Ammunition",
          "Turret Launcher",
-         "Turret Ammunition",
          "Ship Modification",
          "Afterburner",
          "Jammer",
@@ -1448,6 +1447,7 @@ static void outfit_parseSMod( Outfit* temp, const xmlNodePtr parent )
       xmlr_float(node,"cargo",temp->u.mod.cargo);
       xmlr_float(node,"crew_rel", temp->u.mod.crew_rel);
       xmlr_float(node,"mass_rel",temp->u.mod.mass_rel);
+      xmlr_float(node,"hide",temp->u.mod.hide);
       /* Stats. */
       ll = ss_listFromXML( node );
       if (ll != NULL) {
@@ -1466,8 +1466,10 @@ static void outfit_parseSMod( Outfit* temp, const xmlNodePtr parent )
    /* Set short description. */
    temp->desc_short = malloc( OUTFIT_SHORTDESC_MAX );
    i = snprintf( temp->desc_short, OUTFIT_SHORTDESC_MAX,
+         "%s"
          "%s",
-         outfit_getType(temp) );
+         outfit_getType(temp),
+         (temp->u.mod.active) ? "\erActived Outfit\e0\n" : "" );
 
 #define DESC_ADD(x, s, n) \
 if ((x) != 0.) \
@@ -1491,10 +1493,11 @@ if ((x) != 0.) \
    DESC_ADD1( temp->u.mod.armour_regen, "Armour Per Second" );
    DESC_ADD1( temp->u.mod.shield_regen, "Shield Per Second" );
    DESC_ADD1( temp->u.mod.energy_regen, "Energy Per Second" );
-   DESC_ADD0( temp->u.mod.cpu, "CPU" );
+   DESC_ADD1( -temp->u.mod.cpu, "CPU" );
    DESC_ADD0( temp->u.mod.cargo, "Cargo" );
    DESC_ADD0( temp->u.mod.crew_rel, "%% Crew" );
    DESC_ADD0( temp->u.mod.mass_rel, "%% Mass" );
+   DESC_ADD0( temp->u.mod.hide, "Hide" );
 #undef DESC_ADD1
 #undef DESC_ADD0
 #undef DESC_ADD
@@ -1511,7 +1514,7 @@ if ((x) != 0.) \
    temp->u.mod.energy_rel /= 100.;
    temp->u.mod.mass_rel   /= 100.;
    temp->u.mod.crew_rel   /= 100.;
-   temp->u.mod.cpu         = -temp->u.mod.cpu; /* Invert sign so it works with outfit_cpu. */
+   temp->u.mod.cpu         = temp->u.mod.cpu;
 }
 
 
@@ -1551,7 +1554,9 @@ static void outfit_parseSAfterburner( Outfit* temp, const xmlNodePtr parent )
    temp->desc_short = malloc( OUTFIT_SHORTDESC_MAX );
    snprintf( temp->desc_short, OUTFIT_SHORTDESC_MAX,
          "%s\n"
-         "Requires %.0f CPU\n"
+         "\erActived Outfit\e0\n"
+         "Needs %.0f CPU\n"
+         "Only one can be equipped\n"
          "%.1f Duration %.1f Cooldown\n"
          "%.0f Maximum Effective Mass\n"
          "%.0f%% Thrust\n"
@@ -1848,6 +1853,7 @@ static void outfit_parseSJammer( Outfit *temp, const xmlNodePtr parent )
    temp->desc_short = malloc( OUTFIT_SHORTDESC_MAX );
    snprintf( temp->desc_short, OUTFIT_SHORTDESC_MAX,
          "%s\n"
+         "\erActived Outfit\e0\n"
          "Needs %.0f CPU\n"
          "%.0f Range\n"
          "%.0f%% Power\n"

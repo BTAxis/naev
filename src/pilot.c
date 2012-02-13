@@ -1377,8 +1377,12 @@ void pilot_update( Pilot* pilot, const double dt )
          o->stimer -= dt;
          if (o->stimer < 0.) {
             if (o->state == PILOT_OUTFIT_ON) {
-               o->stimer = outfit_cooldown( o->outfit );
-               o->state  = PILOT_OUTFIT_COOLDOWN;
+               if (outfit_isAfterburner( o->outfit )) /* Afterburners */
+                  pilot_afterburnOver( pilot );
+               else {
+                  o->stimer = outfit_cooldown( o->outfit );
+                  o->state  = PILOT_OUTFIT_COOLDOWN;
+               }
                nchg++;
             }
             else if (o->state == PILOT_OUTFIT_COOLDOWN) {
@@ -1567,8 +1571,12 @@ void pilot_update( Pilot* pilot, const double dt )
          if (!o->active)
             continue;
          if (o->state == PILOT_OUTFIT_ON) {
-            o->stimer = outfit_cooldown( o->outfit );
-            o->state  = PILOT_OUTFIT_COOLDOWN;
+            if (outfit_isAfterburner( o->outfit )) /* Afterburners */
+               pilot_afterburnOver( pilot );
+            else {
+               o->stimer = outfit_cooldown( o->outfit );
+               o->state  = PILOT_OUTFIT_COOLDOWN;
+            }
             nchg++;
          }
       }
@@ -1622,16 +1630,20 @@ void pilot_update( Pilot* pilot, const double dt )
    if (!pilot_isFlag(pilot, PILOT_HYPERSPACE)) { /* limit the speed */
 
       /* pilot is afterburning */
-      if (pilot_isFlag(pilot, PILOT_AFTERBURNER) && /* must have enough energy left */
-               (pilot->energy > pilot->afterburner->outfit->u.afb.energy * dt)) {
-         pilot->solid->speed_max = pilot->speed +
-               pilot->speed * pilot->afterburner->outfit->u.afb.speed *
-               MIN( 1., pilot->afterburner->outfit->u.afb.mass_limit/pilot->solid->mass);
+      if (pilot_isFlag(pilot, PILOT_AFTERBURNER)) {
+         if (pilot->energy > pilot->afterburner->outfit->u.afb.energy * dt) { /* must have enough energy left */
+            pilot->solid->speed_max = pilot->speed +
+                  pilot->speed * pilot->afterburner->outfit->u.afb.speed *
+                  MIN( 1., pilot->afterburner->outfit->u.afb.mass_limit/pilot->solid->mass);
 
-         if (pilot->id == PLAYER_ID)
-            spfx_shake( 0.75*SHAKE_DECAY * dt); /* shake goes down at quarter speed */
+            if (pilot->id == PLAYER_ID)
+               spfx_shake( 0.75*SHAKE_DECAY * dt); /* shake goes down at quarter speed */
 
-         pilot->energy -= pilot->afterburner->outfit->u.afb.energy * dt; /* energy loss */
+            pilot->energy -= pilot->afterburner->outfit->u.afb.energy * dt; /* energy loss */
+         }
+         else {
+            pilot_afterburnOver( pilot );
+         }
       }
       else /* normal limit */
          pilot->solid->speed_max = pilot->speed;
@@ -1643,6 +1655,56 @@ void pilot_update( Pilot* pilot, const double dt )
    pilot->solid->update( pilot->solid, dt );
    gl_getSpriteFromDir( &pilot->tsx, &pilot->tsy,
          pilot->ship->gfx_space, pilot->solid->dir );
+}
+
+
+/**
+ * @brief Activate the afterburner.
+ */
+void pilot_afterburn (Pilot *p)
+{
+   //double afb_mod;
+   if (p == NULL)
+      return;
+
+   if (pilot_isFlag(p, PILOT_HYP_PREP) || pilot_isFlag(p, PILOT_HYPERSPACE) ||
+         pilot_isFlag(p, PILOT_LANDING) || pilot_isFlag(p, PILOT_TAKEOFF))
+      return;
+
+   /* Not under manual control. */
+   if (pilot_isFlag( p, PILOT_MANUAL_CONTROL ))
+      return;
+
+   /** @todo fancy effect? */
+   if (p->afterburner == NULL)
+      return;
+
+   if (p->afterburner->state == PILOT_OUTFIT_OFF) {
+      p->afterburner->state  = PILOT_OUTFIT_ON;
+      p->afterburner->stimer = outfit_duration( p->afterburner->outfit );
+      pilot_setFlag(p,PILOT_AFTERBURNER);
+   }
+
+   //afb_mod = MIN( 1., player.p->afterburner->outfit->u.afb.mass_limit / player.p->solid->mass );
+   //spfx_shake( afb_mod * player.p->afterburner->outfit->u.afb.rumble * SHAKE_MAX );
+}
+
+
+/**
+ * @brief Deactivates the afterburner.
+ */
+void pilot_afterburnOver (Pilot *p)
+{
+   if (p == NULL)
+      return;
+   if (p->afterburner == NULL)
+      return;
+
+   if (p->afterburner->state == PILOT_OUTFIT_ON) {
+      p->afterburner->state  = PILOT_OUTFIT_COOLDOWN;
+      p->afterburner->stimer = outfit_cooldown( p->afterburner->outfit );
+      pilot_rmFlag(p,PILOT_AFTERBURNER);
+   }
 }
 
 
