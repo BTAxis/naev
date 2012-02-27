@@ -14,7 +14,7 @@
 #include "naev.h"
 
 #include <stdint.h>
-#include <string.h>
+#include "nstring.h"
 #include <stdlib.h>
 
 #include "nlua.h"
@@ -709,7 +709,10 @@ Mission* missions_genList( int *n, int faction,
                m++;
                /* Extra allocation. */
                if (m > alloced) {
-                  alloced += 32;
+                  if (alloced == 0)
+                     alloced = 32;
+                  else
+                     alloced *= 2;
                   tmp      = realloc( tmp, sizeof(Mission) * alloced );
                }
                /* Initialize the mission. */
@@ -791,7 +794,7 @@ static int mission_parse( MissionData* temp, const xmlNodePtr parent )
       xml_onlyNodes(node);
 
       if (xml_isNode(node,"lua")) {
-         snprintf( str, PATH_MAX, MISSION_LUA_PATH"%s.lua", xml_get(node) );
+         nsnprintf( str, PATH_MAX, MISSION_LUA_PATH"%s.lua", xml_get(node) );
          temp->lua = strdup( str );
          str[0] = '\0';
 

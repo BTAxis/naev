@@ -8,7 +8,7 @@
 #include "naev.h"
 
 #include <stdlib.h>
-#include <string.h>
+#include "nstring.h"
 
 #include "log.h"
 #include "opengl.h"
@@ -125,7 +125,7 @@ static void omsg_setMsg( omsg_t *omsg, const char *msg )
    while (n < l) {
       s  = gl_printWidthForText( font, &msg[n], omsg_center_w );
       omsg->msg[m] = malloc( s+1 );
-      snprintf( omsg->msg[m], s+1, "%s", &msg[n] );
+      nsnprintf( omsg->msg[m], s+1, "%s", &msg[n] );
       m++;
       n += s+1;
    }
@@ -246,10 +246,10 @@ void omsg_render( double dt )
       memcpy( &col, omsg->col, sizeof(glColour) );
       if (omsg->duration < 1.)
          col.a = omsg->duration;
+      gl_printRestoreClear();
       for (j=0; j<omsg->nlines; j++) {
          y -= font->h * 1.5;
-         if (j>0)
-            gl_printRestoreLast();
+         gl_printRestoreLast();
          gl_printMidRaw( font, omsg_center_w, x, y, &col, omsg->msg[j] );
       }
    }

@@ -312,6 +312,7 @@ JumpPoint* jump_getTarget( StarSystem* target, const StarSystem* sys );
 /*
  * system adding/removing stuff.
  */
+void system_reconstructJumps (StarSystem *sys);
 void systems_reconstructJumps (void);
 void systems_reconstructPlanets (void);
 StarSystem *system_new (void);
@@ -335,6 +336,7 @@ void planets_render (void);
 void system_addPresence( StarSystem *sys, int faction, double amount, int range );
 double system_getPresence( StarSystem *sys, int faction );
 void system_addAllPlanetsPresence( StarSystem *sys );
+void space_reconstructPresences( void );
 void system_rmCurrentPresence( StarSystem *sys, int faction, double amount );
 
 /*
@@ -390,6 +392,7 @@ int space_calcJumpInPos( StarSystem *in, StarSystem *out, Vector2d *pos, Vector2
 /*
  * Misc.
  */
+void system_setFaction( StarSystem *sys );
 void space_factionChange (void);
 
 
