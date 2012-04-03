@@ -1319,6 +1319,9 @@ void land( Planet* p, int load )
    land_planet = p;
    gfx_exterior = gl_newImage( p->gfx_exterior, 0 );
 
+   /* Update the economy */
+   economy_update();
+
    /* Generate the news. */
    if (planet_hasService(land_planet, PLANET_SERVICE_BAR))
       news_load();
