@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<outfit name="Test Loutfit">
+ <general>
+  <slot>utility</slot>
+  <size>small</size>
+  <mass>1</mass>
+  <price>0</price>
+  <description>A special outfit that is used by an all-powerful being to test shit.</description>
+  <gfx_store>jammer1</gfx_store>
+ </general>
+ <specific type="lua activated">
+  <active cooldown="0">10</active>
+  <script_on>tk.msg("Test", "Hello! On")</script_on>
+  <script_off>tk.msg("Test", "Hello! Off")</script_off>
+ </specific>
+</outfit>

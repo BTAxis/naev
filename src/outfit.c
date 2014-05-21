@@ -66,6 +66,7 @@ static void outfit_parseSBeam( Outfit* temp, const xmlNodePtr parent );
 static void outfit_parseSLauncher( Outfit* temp, const xmlNodePtr parent );
 static void outfit_parseSAmmo( Outfit* temp, const xmlNodePtr parent );
 static void outfit_parseSMod( Outfit* temp, const xmlNodePtr parent );
+static void outfit_parseSLuaA( Outfit* temp, const xmlNodePtr parent );
 static void outfit_parseSAfterburner( Outfit* temp, const xmlNodePtr parent );
 static void outfit_parseSJammer( Outfit *temp, const xmlNodePtr parent );
 static void outfit_parseSFighterBay( Outfit *temp, const xmlNodePtr parent );
@@ -360,6 +361,8 @@ int outfit_isActive( const Outfit* o )
       return 1;
    if (outfit_isAfterburner(o))
       return 1;
+   if (outfit_isLuaActivated(o))
+      return 1;
    return 0;
 }
 
@@ -445,6 +448,15 @@ int outfit_isTurret( const Outfit* o )
 int outfit_isMod( const Outfit* o )
 {
    return (o->type==OUTFIT_TYPE_MODIFCATION);
+}
+/**
+ * @brief Checks if outfit is a Lua activated outfit
+ *    @param o Outfit to check.
+ *    @return 1 if o is a Lua activated outfit
+ */
+int outfit_isLuaActivated( const Outfit* o )
+{
+   return (o->type==OUTFIT_TYPE_LUA_ACTIVATED);
 }
 /**
  * @brief Checks if outfit is an afterburner.
@@ -708,7 +720,8 @@ int outfit_soundHit( const Outfit* o )
  */
 double outfit_duration( const Outfit* o )
 {
-   if (outfit_isMod(o)) { if (o->u.mod.active) return o->u.mod.duration; }
+   /* if (outfit_isMod(o)) { if (o->u.mod.active) return o->u.mod.duration; } */
+   if (o->u.mod.active) return o->u.mod.duration;
    else if (outfit_isJammer(o)) return INFINITY;
    else if (outfit_isAfterburner(o)) return INFINITY;
    return -1.;
@@ -720,7 +733,8 @@ double outfit_duration( const Outfit* o )
  */
 double outfit_cooldown( const Outfit* o )
 {
-   if (outfit_isMod(o)) { if (o->u.mod.active) return o->u.mod.cooldown; }
+   /* if (outfit_isMod(o)) { if (o->u.mod.active) return o->u.mod.cooldown; } */
+   if (o->u.mod.active) return o->u.mod.cooldown;
    else if (outfit_isJammer(o)) return 0.;
    else if (outfit_isAfterburner(o)) return 0.;
    return -1.;
@@ -770,21 +784,22 @@ const char* outfit_getType( const Outfit* o )
  */
 const char* outfit_getTypeBroad( const Outfit* o )
 {
-   if (outfit_isBolt(o))            return "Bolt Weapon";
-   else if (outfit_isBeam(o))       return "Beam Weapon";
-   else if (outfit_isLauncher(o))   return "Launcher";
-   else if (outfit_isAmmo(o))       return "Ammo";
-   else if (outfit_isTurret(o))     return "Turret";
-   else if (outfit_isMod(o))        return "Modification";
-   else if (outfit_isAfterburner(o)) return "Afterburner";
-   else if (outfit_isJammer(o))     return "Jammer";
-   else if (outfit_isFighterBay(o)) return "Fighter Bay";
-   else if (outfit_isFighter(o))    return "Fighter";
-   else if (outfit_isMap(o))        return "Map";
-   else if (outfit_isLocalMap(o))   return "Local Map";
-   else if (outfit_isGUI(o))        return "GUI";
-   else if (outfit_isLicense(o))    return "License";
-   else                             return "Unknown";
+   if (outfit_isBolt(o))               return "Bolt Weapon";
+   else if (outfit_isBeam(o))          return "Beam Weapon";
+   else if (outfit_isLauncher(o))      return "Launcher";
+   else if (outfit_isAmmo(o))          return "Ammo";
+   else if (outfit_isTurret(o))        return "Turret";
+   else if (outfit_isMod(o))           return "Modification";
+   else if (outfit_isLuaActivated(o))  return "Lua Activated Outfit";
+   else if (outfit_isAfterburner(o))   return "Afterburner";
+   else if (outfit_isJammer(o))        return "Jammer";
+   else if (outfit_isFighterBay(o))    return "Fighter Bay";
+   else if (outfit_isFighter(o))       return "Fighter";
+   else if (outfit_isMap(o))           return "Map";
+   else if (outfit_isLocalMap(o))      return "Local Map";
+   else if (outfit_isGUI(o))           return "GUI";
+   else if (outfit_isLicense(o))       return "License";
+   else                                return "Unknown";
 }
 
 
@@ -887,6 +902,7 @@ static OutfitType outfit_strToOutfitType( char *buf )
    O_CMP("ammo",           OUTFIT_TYPE_AMMO);
    O_CMP("turret launcher",OUTFIT_TYPE_TURRET_LAUNCHER);
    O_CMP("modification",   OUTFIT_TYPE_MODIFCATION);
+   O_CMP("lua activated",  OUTFIT_TYPE_LUA_ACTIVATED);
    O_CMP("afterburner",    OUTFIT_TYPE_AFTERBURNER);
    O_CMP("fighter bay",    OUTFIT_TYPE_FIGHTER_BAY);
    O_CMP("fighter",        OUTFIT_TYPE_FIGHTER);
@@ -1560,6 +1576,36 @@ if ((x) != 0.) \
 
 
 /**
+ * @brief Parses the Lua Activated tidbits of the outfit.
+ *
+ *    @param temp Outfit to finish loading.
+ *    @param parent Outfit's parent node.
+ */
+static void outfit_parseSLuaA( Outfit* temp, const xmlNodePtr parent )
+{
+   xmlNodePtr node;
+   char *buf;
+   node = parent->children;
+   
+   do { /* load all the data */
+      xml_onlyNodes(node);
+      if (xml_isNode(node,"active")) {
+         xmlr_attr(node, "cooldown", buf);
+         if (buf != NULL) {
+            temp->u.mod.cooldown = atof( buf );
+            free(buf);
+         }
+         temp->u.mod.duration = xml_getFloat(node);
+         temp->u.mod.active   = 1;
+         continue;
+      }
+      /* scripts */
+      xmlr_strd(node,"script_on",temp->u.script.script_on);
+      xmlr_strd(node,"script_off",temp->u.script.script_off);
+   } while (xml_nextNode(node));
+}
+
+/**
  * @brief Parses the afterburner tidbits of the outfit.
  *
  *    @param temp Outfit to finish loading.
@@ -2102,6 +2148,8 @@ static int outfit_parse( Outfit* temp, const char* file )
             outfit_parseSAmmo( temp, node );
          else if (outfit_isMod(temp))
             outfit_parseSMod( temp, node );
+         else if (outfit_isLuaActivated(temp))
+            outfit_parseSLuaA( temp, node );
          else if (outfit_isAfterburner(temp))
             outfit_parseSAfterburner( temp, node );
          else if (outfit_isJammer(temp))
@@ -2322,6 +2370,8 @@ void outfit_free (void)
       free(o->desc_short);
       free(o->license);
       free(o->name);
+      free(o->u.script.script_on);
+      free(o->u.script.script_off);
       if (o->gfx_store)
          gl_freeTexture(o->gfx_store);
    }

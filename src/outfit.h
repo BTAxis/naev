@@ -50,6 +50,7 @@ typedef enum OutfitType_ {
    OUTFIT_TYPE_AMMO, /**< Launcher ammo. */
    OUTFIT_TYPE_TURRET_LAUNCHER, /**< Turret launcher. */
    OUTFIT_TYPE_MODIFCATION, /**< Modifies the ship base features. */
+   OUTFIT_TYPE_LUA_ACTIVATED, /**< Runs a script upon activation. */
    OUTFIT_TYPE_AFTERBURNER, /**< Gives the ship afterburn capability. */
    OUTFIT_TYPE_JAMMER, /**< Used to nullify seeker missiles. */
    OUTFIT_TYPE_FIGHTER_BAY, /**< Contains other ships. */
@@ -244,6 +245,17 @@ typedef struct OutfitModificationData_ {
 } OutfitModificationData;
 
 /**
+ * @brief Represents an outfit that runs a script.
+ *
+ * These run a custom script upon activation or deactivation.
+ */
+typedef struct OutfitScriptData_ {
+   /* Misc. */
+   char *script_on;     /**< Script that runs on activation. */
+   char *script_off;    /**< Script that runs on deactivation. */
+} OutfitScriptData;
+
+/**
  * @brief Represents an afterburner.
  */
 typedef struct OutfitAfterburnerData_ {
@@ -340,6 +352,7 @@ typedef struct Outfit_ {
       OutfitLauncherData lau;     /**< MISSILE */
       OutfitAmmoData amm;         /**< AMMO */
       OutfitModificationData mod; /**< MODIFICATION */
+      OutfitScriptData script;    /**< LUA SCRIPT */
       OutfitAfterburnerData afb;  /**< AFTERBURNER */
       OutfitJammerData jam;       /**< JAMMER */
       OutfitFighterBayData bay;   /**< FIGHTER_BAY */
@@ -368,6 +381,7 @@ int outfit_isAmmo( const Outfit* o );
 int outfit_isSeeker( const Outfit* o );
 int outfit_isTurret( const Outfit* o );
 int outfit_isMod( const Outfit* o );
+int outfit_isLuaActivated( const Outfit* o );
 int outfit_isAfterburner( const Outfit* o );
 int outfit_isJammer( const Outfit* o );
 int outfit_isFighterBay( const Outfit* o );
